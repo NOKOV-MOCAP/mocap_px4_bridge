@@ -48,24 +48,18 @@ void MocapPX4Bridge::poseCallback(const geometry_msgs::msg::PoseStamped::UniqueP
 					poseMsg->pose.orientation.x, poseMsg->pose.orientation.y, poseMsg->pose.orientation.z);
 	px4_msgs::msg::VehicleOdometry odomMsg;
 
-	odomMsg.pose_frame = odomMsg.POSE_FRAME_NED;
+	odomMsg.pose_frame = odomMsg.POSE_FRAME_FRD;
 	odomMsg.timestamp = uint64_t(poseMsg->header.stamp.sec)*1000000 + uint64_t(poseMsg->header.stamp.nanosec)/1000;
 	odomMsg.timestamp_sample = odomMsg.timestamp;
 
-	odomMsg.position[0] = poseMsg->pose.position.y;
-    odomMsg.position[1] = poseMsg->pose.position.x;
-    odomMsg.position[2] = -poseMsg->pose.position.z;
+	odomMsg.position[0] = poseMsg->pose.position.x;
+	odomMsg.position[1] = -poseMsg->pose.position.y;
+	odomMsg.position[2] = -poseMsg->pose.position.z;
 
-    double qw = poseMsg->pose.orientation.w;
-    double qx = poseMsg->pose.orientation.x;
-    double qy = poseMsg->pose.orientation.y;
-    double qz = poseMsg->pose.orientation.z;
-    static const double inv_sqrt2 = 0.70710678118654752;
-
-    odomMsg.q[0] = (qw + qz) * inv_sqrt2;
-    odomMsg.q[1] = (qx + qy) * inv_sqrt2;
-    odomMsg.q[2] = (qx - qy) * inv_sqrt2;
-    odomMsg.q[3] = (qw - qz) * inv_sqrt2;
+	odomMsg.q[0] = poseMsg->pose.orientation.w;
+	odomMsg.q[1] = poseMsg->pose.orientation.x;
+	odomMsg.q[2] = - poseMsg->pose.orientation.y;
+	odomMsg.q[3] = - poseMsg->pose.orientation.z;
 
 	odomPub -> publish(odomMsg);
 	RCLCPP_INFO_ONCE(get_logger(), "Sent to PX4 as:");
